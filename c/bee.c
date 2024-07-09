@@ -17,7 +17,7 @@ typedef struct lval {
 } lval;
 
 // possible error types
-enum { LERR_DIV_ZERO, LERR_BAD_OP, LERR_BAD_NUM };
+//enum { LERR_DIV_ZERO, LERR_BAD_OP, LERR_BAD_NUM };
 // possible lval values
 enum { LVAL_NUM, LVAL_ERR, LVAL_SYM, LVAL_SEXPR};
 
@@ -130,6 +130,7 @@ lval* lval_read(mpc_ast_t* t){
     return x;
 }
 
+// EVAL STUFF
 lval* lval_eval_sexpr(lval* v);
 
 lval* lval_eval(lval* v){
@@ -273,13 +274,13 @@ int main(int argc, char **argv){
     mpc_parser_t* Lisp = mpc_new("lisp");
 
     mpca_lang(MPCA_LANG_DEFAULT,
-        "                                                   \
-        number   : /-?[0-9]+/ ;                             \
-        symbol   : '+' | '-' | '*' | '/' ;                  \
-        sexpr    : '(' <expr>* ')' ;                        \
-        expr     : <number> | '(' <symbol> <expr>+ ')' ;    \
-        lisp     : /^/ <symbol> <expr>+ /$/ ;               \
-        ",
+        "                                        \
+        number : /-?[0-9]+/ ;                    \
+        symbol : '+' | '-' | '*' | '/' ;         \
+        sexpr  : '(' <expr>* ')' ;               \
+        expr   : <number> | <symbol> | <sexpr> ; \
+        lisp   : /^/ <expr>* /$/ ;               \
+        ",        
         Number,Symbol,Sexpr,Expr,Lisp);
 
     puts("Lisp by svin");
