@@ -95,7 +95,6 @@ lval* lval_pop(lval* v,int i){
     return x;
 }
 
-
 lval* lval_take(lval* v, int i){
     lval* x = lval_pop(v, i);
     lval_del(v);
@@ -106,7 +105,7 @@ void lval_print(lval* v);
 
 void lval_expr_print(lval* v, char open, char close){
     putchar(open);
-    for (int i = 0; i < v->count; i++){
+    for (int i = 0; i < v->count; i++) {
         lval_print(v->cell[i]);
 
         if(i != (v->count -1)){
