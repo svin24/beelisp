@@ -59,7 +59,7 @@ void lval_expr_print(lval* v, char open, char close){
     for (int i = 0; i < v->count; i++){
         lval_print(v->cell[i]);
 
-        if(i!= (v->count)){
+        if(i != (v->count -1)){
             putchar(' ');
         }
     }
@@ -117,8 +117,8 @@ lval* lval_read(mpc_ast_t* t){
     if (strstr(t->tag,"symbol")) return lval_sym(t->contents);
 
     lval* x = NULL;
-    if (strcmp(t->tag, ">") == 0) { x = lval_sexpr(); }
-    if (strcmp(t->tag, "sexpr")) { x = lval_sexpr(); }
+    if (strcmp(t->tag, ">") == 0) x = lval_sexpr();
+    if (strstr(t->tag, "sexpr"))  x = lval_sexpr(); 
 
     for(int i; i < t->children_num; i++){
         if (strcmp(t->children[i]->contents, "(") == 0) continue;
@@ -142,7 +142,7 @@ lval* lval_pop(lval* v,int i){
     lval* x = v->cell[i];
     
     memmove(&v->cell[i],
-            &v->cell[i+1] ,
+            &v->cell[i+1],
             sizeof(lval*) * (v->count-i-1));
 
     v->count--;
@@ -158,7 +158,6 @@ lval* lval_take(lval* v, int i){
 }
 
 lval* builtin_op(lval* v, char* op){
-
     for(int i = 0; i < v->count; i++){
         if (v->cell[i]->type != LVAL_NUM){
             lval_del(v);
@@ -168,7 +167,7 @@ lval* builtin_op(lval* v, char* op){
 
     lval* x = lval_pop(v, 0);
 
-    // unary operation
+    // if no arguments -> unary negation
     if ((strcmp(op,"-") == 0) && v->count == 0) x->num = -x->num;
 
     while (v->count > 0) {
@@ -195,7 +194,7 @@ lval* builtin_op(lval* v, char* op){
 
 lval* lval_eval_sexpr(lval* v) {
 
-    // lval evalutation
+    // children evalutation
     for (int i = 0; i < v->count; i++){
         v->cell[i] = lval_eval(v->cell[i]);
     }
@@ -204,9 +203,11 @@ lval* lval_eval_sexpr(lval* v) {
         if (v->cell[i]->type == LVAL_ERR) return lval_take(v,i);
     }
 
+    // empty and single expression
     if (v->count == 0) return v;
     if (v->count == 1) return lval_take(v,0);
 
+    // First element is symbol
     lval* f = lval_pop(v,0);
     if(f->type != LVAL_SYM){
         lval_del(f);
@@ -218,53 +219,6 @@ lval* lval_eval_sexpr(lval* v) {
     lval_del(f);
     return result;
 }
-
-/*
-lval eval_op(lval x, char* op, lval y){
-
-    if(x.type == LVAL_ERR) return x;
-    if(y.type == LVAL_ERR) return y;
-
-    if (strcmp(op,"+") == 0) return lval_num(x.num + y.num);
-    if (strcmp(op,"-") == 0) return lval_num(x.num - y.num);
-    if (strcmp(op,"*") == 0) return lval_num(x.num * y.num);
-    if (strcmp(op,"/") == 0) {
-
-        if (y.num == 0)
-            return lval_err(LERR_DIV_ZERO);
-        else
-            return lval_num(x.num / y.num);
-    };
-
-    return lval_err(LERR_BAD_OP);
-}
-
-lval eval(mpc_ast_t* t) {
-
-    if (strstr(t->tag, "number")) {
-        // Check if there is some error in conversion
-        errno = 0;
-        long x = strtol(t->contents, NULL, 10);
-
-        if (errno != ERANGE)
-            return lval_num(x);
-        else
-            return lval_err(LERR_BAD_NUM);
-
-    }
-
-    char* op = t->children[1]->contents;
-    lval x = eval(t->children[2]);
-
-    int i = 3;
-    while (strstr(t->children[i]->tag, "expr")) {
-        x = eval_op(x, op, eval(t->children[i]));
-        i++;
-    }
-
-    return x;
-}
-*/
 
 int main(int argc, char **argv){
     mpc_parser_t* Number = mpc_new("number");
